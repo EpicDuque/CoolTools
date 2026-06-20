@@ -11,7 +11,7 @@ namespace CoolTools.Actors
 
         public string EffectDescription => _effectDescription;
 
-        public virtual void Execute(Actor source, IDetectable target)
+        public virtual void Execute(Actor source, Detectable target)
         {
         }
 
@@ -23,7 +23,7 @@ namespace CoolTools.Actors
         {
         }
         
-        public virtual void Execute(Actor source)
+        public virtual void Execute(Actor target)
         {
         }
 

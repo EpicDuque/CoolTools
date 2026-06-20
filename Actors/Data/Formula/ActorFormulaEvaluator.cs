@@ -9,6 +9,7 @@ using UnityEditor;
 #endif
 
 using UnityEngine;
+using ZLinq;
 
 namespace CoolTools.Actors
 {
@@ -61,59 +62,61 @@ namespace CoolTools.Actors
         public virtual void AddInputParameters(Formula formula, Actor actor)
         {
             if (actor == null) return;
-            if(actor.StatProvider == null) return;
             
             formula.RefreshParameters();
 
-            // Refactor above line into a stringbuilder
-            foreach (var av in actor.StatProvider.CurrentStats)
+            if (actor.StatProvider != null)
             {
-                if(av.Attribute == null) continue;
-                
-                // If formula doesnt contain this input parmeter
-                bool all = true;
-                
-                string compare = null;
-
-                foreach (var term in _bakedParameterNames)
+                // Refactor above line into a stringbuilder
+                foreach (var av in actor.StatProvider.CurrentStats)
                 {
-                    // if(term.Contains("a."))
-                    //     if(term.Split("a.")[1] != av.Attribute.VariableName) continue;
-                    // else if (term != av.Attribute.VariableName) continue;
-                    if (!term.Contains(av.Attribute.VariableName) || 
-                        av.Attribute.VariableName.Length != term.Length - 2) continue;
+                    if(av.Attribute == null) continue;
                     
-                    compare = term;
-                    break;
+                    // If formula doesn't contain this input parmeter
+                    bool all = true;
+                    
+                    string compare = null;
+
+                    foreach (var term in _bakedParameterNames)
+                    {
+                        // if(term.Contains("a."))
+                        //     if(term.Split("a.")[1] != av.Attribute.VariableName) continue;
+                        // else if (term != av.Attribute.VariableName) continue;
+                        if (!term.Contains(av.Attribute.VariableName) || 
+                            av.Attribute.VariableName.Length != term.Length - 2) continue;
+                        
+                        compare = term;
+                        break;
+                    }
+
+                    if (compare == null)
+                    {
+                        Debug.LogWarning($"[{nameof(ActorFormulaEvaluator)}] {name} does not contain the parameter {av.Attribute.VariableName}.");
+                        _stringBuilder.Clear();
+                        _stringBuilder.Append("a");
+                        _stringBuilder.Append(".");
+                        _stringBuilder.Append(av.Attribute.VariableName);
+                        compare = _stringBuilder.ToString();
+                        _bakedParameterNames.Add(compare);
+                    }
+
+                    foreach (var ip in formula.InputParameters)
+                    {
+                        if (ip.Name != compare) continue;
+
+                        all = false;
+                        break;
+                    }
+
+                    if (all) continue;
+
+                    var param = new Formula.ParameterInput 
+                    { 
+                        Name = compare, 
+                        Value = av.Value
+                    };
+                    _inputParameters.Add(param);
                 }
-
-                if (compare == null)
-                {
-                    Debug.LogWarning($"[{nameof(ActorFormulaEvaluator)}] {name} does not contain the parameter {av.Attribute.VariableName}.");
-                    _stringBuilder.Clear();
-                    _stringBuilder.Append("a");
-                    _stringBuilder.Append(".");
-                    _stringBuilder.Append(av.Attribute.VariableName);
-                    compare = _stringBuilder.ToString();
-                    _bakedParameterNames.Add(compare);
-                }
-
-                foreach (var ip in formula.InputParameters)
-                {
-                    if (ip.Name != compare) continue;
-
-                    all = false;
-                    break;
-                }
-
-                if (all) continue;
-
-                var param = new Formula.ParameterInput 
-                { 
-                    Name = compare, 
-                    Value = av.Value
-                };
-                _inputParameters.Add(param);
             }
 
             if (_includeActorPosition)
@@ -129,7 +132,7 @@ namespace CoolTools.Actors
                     Name = "a.y",
                     Value = position.y
                 });
-                _inputParameters.Add(new Formula.ParameterInput
+                _inputParameters.Add(new Formula.ParameterInput//
                 {
                     Name = "a.z",
                     Value = position.z
@@ -163,12 +166,18 @@ namespace CoolTools.Actors
                     Value = actor.DamageableResource.Percent
                 });
             }
-            
-            _inputParameters.AddRange(_customParameters.Select(p => new Formula.ParameterInput
-            {
-                Name = p.Name,
-                Value = p.Value,
-            }));
+
+            var values = _customParameters
+#if ACTOR_ZLINQ
+                .AsValueEnumerable()
+#endif
+                .Select(p => new Formula.ParameterInput
+                {
+                    Name = p.Name,
+                    Value = p.Value,
+                })
+                .ToArray();
+            _inputParameters.AddRange(values);
         }
 
 #if UNITY_EDITOR

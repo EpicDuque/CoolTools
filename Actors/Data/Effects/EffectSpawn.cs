@@ -1,7 +1,6 @@
 ﻿using CoolTools.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 
 namespace CoolTools.Actors
 {
@@ -17,27 +16,31 @@ namespace CoolTools.Actors
         [Space(10f)]
         [SerializeField] private bool _spawnWithOwnership;
         
-        [FormerlySerializedAs("_localOffset")]
         [Space(10f)]
         [SerializeField] private bool _localPositionOffset;
-        [FormerlySerializedAs("_offset")] 
-        [SerializeField] private Vector3 _positinOffset;
+        [SerializeField] private Vector3 _positionOffset;
         
         [Space(10f)] 
         [SerializeField] private Vector3 _scaleOffset;
-        
-        public override void Execute(Actor source)
+
+        public GameObject SpawnObject
         {
-            var position = ResolvePosition(source);
+            get => _spawnObject;
+            set => _spawnObject = value;
+        }
+
+        public override void Execute(Actor target)
+        {
+            var position = ResolvePosition(target);
             
-            var spawn = SpawnOrPull(_spawnObject, position, source.transform.rotation);
+            var spawn = SpawnOrPull(_spawnObject, position, target.transform.rotation);
             spawn.transform.localScale += _scaleOffset;
             
             if(_spawnWithOwnership)
-                AssignOwnership(source, spawn);
+                AssignOwnership(target, spawn);
         }
 
-        public override void Execute(Actor source, IDetectable target)
+        public override void Execute(Actor source, Detectable target)
         {
             var position = ResolvePosition(source);
             
@@ -51,7 +54,7 @@ namespace CoolTools.Actors
         
         public override void Execute(Actor source, Vector3 target)
         {
-            var position = target + _positinOffset;
+            var position = target + _positionOffset;
             
             // var spawn = Instantiate(_spawnObject, position, Quaternion.identity);
             var spawn = SpawnOrPull(_spawnObject, position, Quaternion.identity);
@@ -83,19 +86,19 @@ namespace CoolTools.Actors
         private Vector3 ResolvePosition(Actor source)
         {
             return _localPositionOffset ? 
-                source.transform.position + source.transform.TransformDirection(_positinOffset) :
-                source.transform.position + _positinOffset;
+                source.transform.position + source.transform.TransformDirection(_positionOffset) :
+                source.transform.position + _positionOffset;
         }
 
         private void AssignOwnership(Actor source, GameObject spawn)
         {
-            if (spawn.TryGetComponent(out RootOwnable ownable))
+            if (spawn.TryGetComponent(out OwnableBehaviour ownable))
             {
                 ownable.Owner = source;
             }
             else
             {
-                Debug.LogWarning($"[{nameof(EffectSpawn)}] {spawn.name} does not have {nameof(RootOwnable)} component.");
+                Debug.LogWarning($"[{nameof(EffectSpawn)}] {spawn.name} does not have {nameof(OwnableBehaviour)} component.");
             }
         }
     }

@@ -10,10 +10,11 @@ namespace CoolTools.Actors
         [Space(10f)] 
         [SerializeField] private bool _listenForSpecificActors;
         [SerializeField] private List<Actor> _actorsToListen;
-        
-        [Space(10f)]
         public UnityEvent<Actor> OnSpecificActorEvent;
 
+        [Space(10f)] 
+        public UnityEvent<Transform> ActorTransformEvent;
+        
         public List<Actor> ActorsToListen => _actorsToListen;
 
         public bool ListenForSpecificActors
@@ -25,11 +26,14 @@ namespace CoolTools.Actors
         public override void OnEventRaised(Actor data)
         {
             base.OnEventRaised(data);
+
+            if (_listenForSpecificActors)
+            {
+                if (_actorsToListen.Contains(data))
+                    OnSpecificActorEvent?.Invoke(data);
+            }
             
-            if (!_listenForSpecificActors) return;
-            
-            if (_actorsToListen.Contains(data))
-                OnSpecificActorEvent?.Invoke(data);
+            ActorTransformEvent?.Invoke(data.transform);
         }
     }
 }

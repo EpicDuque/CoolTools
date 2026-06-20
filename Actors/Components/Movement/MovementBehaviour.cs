@@ -1,6 +1,5 @@
 ﻿using System;
 using CoolTools.Attributes;
-using CoolTools.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
@@ -20,12 +19,6 @@ namespace CoolTools.Actors
             [Range(0f, 50f)]
             public float RotationSmoothTime;
             public float MovementAccel;
-            public bool UseMoveSpeedInputCurve;
-            public ValueCurve MoveSpeedInputCurve;
-
-            // [Space(10f)]
-            // public bool UpdateAgentPosition = true;
-            // public bool UpdateAgentRotation = true;
 
             [Space(10f)] 
             public bool UseGravity = true;
@@ -74,7 +67,7 @@ namespace CoolTools.Actors
         [ColorSpacer("Debug")]
         [SerializeField, InspectorDisabled] protected float _speed;
         [SerializeField, InspectorDisabled] private Vector2 _movementInput;
-        [SerializeField, InspectorDisabled] private float _valuefromCurve;
+        [SerializeField, InspectorDisabled] private float _valueFromCurve;
         
         protected Vector3 _lastPosition;
 
@@ -175,15 +168,15 @@ namespace CoolTools.Actors
         {
             MovementInput = Vector2.zero;
             _limitSpeed = true;
-            
-            // if(MovementBehaviourSystem.Instanced)
-            //     MovementBehaviourSystem.RegisterInstance(this);
+
+            if (HasNavMeshAgent)
+                NavMeshAgent.enabled = true;
         }
 
         private void OnDisable()
         {
-            // if(MovementBehaviourSystem.Instanced)
-            //     MovementBehaviourSystem.UnregisterInstance(this);
+            if (HasNavMeshAgent)
+                NavMeshAgent.enabled = false;
         }
 
         private new void Awake()
@@ -197,6 +190,12 @@ namespace CoolTools.Actors
         {
             HasCharacterController = _characterController != null;
             HasNavMeshAgent = _navMeshAgent != null;
+
+            if (HasNavMeshAgent)
+            {
+                _navMeshAgent.updatePosition = true;
+                _navMeshAgent.updateRotation = false;
+            }
 
             _animationParams.CreateHashes();
             _groundDetectResults = new Collider[32];
@@ -218,8 +217,6 @@ namespace CoolTools.Actors
             if (!HasNavMeshAgent) return;
             
             _navMeshAgent.speed = _maxMovementSpeed.Value;
-            // _navMeshAgent.updateRotation = _movementSettings.UpdateAgentRotation;
-            // _navMeshAgent.updatePosition = _movementSettings.UpdateAgentPosition;
         }
         
         protected override void OnStatsUpdated()
@@ -240,6 +237,7 @@ namespace CoolTools.Actors
         protected virtual void MoveStep()
         {
             var movement = Vector3.zero;
+            if (HasNavMeshAgent) return;
 
             if(CanMove)
             {
@@ -247,14 +245,7 @@ namespace CoolTools.Actors
                            (_speed * Time.deltaTime);
             }
 
-            if (!HasNavMeshAgent)
-            {
-                CCMove(movement);
-            }
-            else if (!NavMeshAgent.hasPath)
-            {
-                NavMeshAgent.velocity = new Vector3(MovementInput.x, 0f, MovementInput.y).normalized * NavMeshAgent.speed;
-            }
+            CCMove(movement);
         }
         
         /// <summary>
@@ -264,8 +255,14 @@ namespace CoolTools.Actors
         {
             if (Time.deltaTime <= 0f) return;
             if (!CanRotate) return;
-
-            if (HasNavMeshAgent && _navMeshAgent.updateRotation) return;
+            
+            if (HasNavMeshAgent)
+            {
+                if (!_navMeshAgent.updateRotation && _navMeshAgent.desiredVelocity.sqrMagnitude > 0.2f)
+                {
+                    LookInput = new Vector3(_navMeshAgent.desiredVelocity.x, 0f, _navMeshAgent.desiredVelocity.z).normalized;
+                }
+            }
 
             var transformY = _rotationY;
             
@@ -349,27 +346,17 @@ namespace CoolTools.Actors
             
             _lastPosition = transform.position;
             var currentSpeed = Velocity.magnitude;
+
+            if (currentSpeed > _maxMovementSpeed.Value)
+                currentSpeed = _maxMovementSpeed.Value;
             
-            const float speedOffset = 0.1f;
+            // const float speedOffset = 0.1f;
             
-            // accelerate or decelerate to target speed
-            if (currentSpeed < _maxMovementSpeed.Value - speedOffset || currentSpeed > _maxMovementSpeed.Value + speedOffset)
-            {
-                if(_movementSettings.UseMoveSpeedInputCurve)
-                    _valuefromCurve = _movementSettings.MoveSpeedInputCurve.Evaluate(MovementInput.magnitude);
-                
-                var maxValue = _movementSettings.UseMoveSpeedInputCurve ? 
-                    _valuefromCurve * _maxMovementSpeed.Value : 
-                    _maxMovementSpeed.Value * MovementInput.magnitude;
-                
-                _speed = Mathf.Lerp(currentSpeed, maxValue, Time.deltaTime * _movementSettings.MovementAccel);
+            var targetValue = _maxMovementSpeed.Value * MovementInput.magnitude;
             
-                _speed = Mathf.Round(_speed * 1000) / 1000;
-            }
-            else
-            {
-                _speed = _maxMovementSpeed.Value;
-            }
+            _speed = Mathf.Lerp(currentSpeed, targetValue, Time.deltaTime * _movementSettings.MovementAccel);
+            _speed = Mathf.Round(_speed * 1000) / 1000;
+            _speed = Mathf.Clamp(_speed, 0f, _maxMovementSpeed.Value);
         }
         
         /// <summary>
@@ -465,6 +452,14 @@ namespace CoolTools.Actors
             
             if (HasCharacterController)
                 _characterController.enabled = true;
+        }
+        
+        public void SetDestination(Vector3 position)
+        {
+            if (!HasNavMeshAgent) return;
+            
+            _navMeshAgent.isStopped = false;
+            _navMeshAgent.SetDestination(position);
         }
     }
 }

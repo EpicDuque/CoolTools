@@ -70,6 +70,11 @@ namespace CoolTools.Actors
             }
         }
 
+        private void OnDisable()
+        {
+            ClearDetectedTargets();
+        }
+
         private void Update()
         {
             _objectsToRemove.Clear();
@@ -166,6 +171,8 @@ namespace CoolTools.Actors
             {
                 _detectedTargets[i] = Detectable.Null;
             }
+            
+            // DO NOT SET DETECTED AMOUNT = 0 HERE, IT BREAKS THE SCANNER
         }
         
         public void SortDetectedTargets()
@@ -223,17 +230,6 @@ namespace CoolTools.Actors
             Gizmos.DrawWireSphere(transform.position, _scanRadius.Value);
         }
 
-        // public void UpdateScanParams()
-        // {
-        //     ScanData = new ScannerSystem.ScanData()
-        //     {
-        //         Position = transform.position,
-        //         LayerMask = _layerMask,
-        //         ScanRadius = _scanRadius.Value,
-        //         ResultsAmount = 0,
-        //     };
-        // }
-
         public void UpdateResults(ColliderHit[] results, int hits)
         {
             ClearDetectedTargets();
@@ -243,7 +239,8 @@ namespace CoolTools.Actors
             // Store all the IDamageables in a list and sort them using the DistanceComparator
             for (int i = 0; i < hits; i++)
             {
-                if (results[i].instanceID == 0) continue;
+                if (results[i].entityId == EntityId.None) continue;
+                
                 var hit = results[i].collider;
 
                 if (hit.TryGetComponent(out Detectable detectable) && !detectable.BypassDetection)

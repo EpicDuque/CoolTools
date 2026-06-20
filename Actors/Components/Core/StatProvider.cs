@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using CoolTools.Attributes;
 using CoolTools.Utilities;
 using UnityEngine;
@@ -228,6 +229,24 @@ namespace CoolTools.Actors
             var value = (modification.Multiplier * curveValue) + modification.Offset;
 
             return Mathf.RoundToInt(value);
+        }
+        
+        public int GetCurrentStatValue(AttributeSO attribute)
+        {
+            var stat = new StatSheet.AttributeValue();
+            foreach (var stat1 in CurrentStats)
+            {
+                if (stat1.Attribute == attribute)
+                {
+                    stat = stat1;
+                    break;
+                }
+            }
+
+            if (stat.Attribute == null)
+                return -1;
+            
+            return stat.Value;
         }
         
         public int GetStatValue(AttributeSO attribute)

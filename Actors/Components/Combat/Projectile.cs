@@ -129,7 +129,7 @@ namespace CoolTools.Actors
             _hasHitBox = _hitBox != null;
             if (_hasHitBox)
             {
-                _hitBox.Events.OnHit.AddListener(OnHitBoxHit);
+                _hitBox.OnHit.AddListener(OnHitBoxHit);
             }
         }
 
@@ -164,7 +164,9 @@ namespace CoolTools.Actors
         {
             UpdateValues();
             
-            _hitBox.enabled = true;
+            if(_hasHitBox)
+                _hitBox.enabled = true;
+            
             _disposing = false;
             _model.SetActive(true);
             _rigidbody.isKinematic = _isKinematic;
@@ -184,18 +186,8 @@ namespace CoolTools.Actors
             Target = Detectable.Null;
         }
 
-        private void OnHitBoxHit(IDamageable other)
+        private void OnHitBoxHit(DamageParams dp)
         {
-            if (HitCount == _maxHits.Value - 1)
-            {
-                if (other is MonoBehaviour mb)
-                {
-                    // Move the projectile to the same XZ position as the last target hit
-                    // var otherXZ = new Vector3(mb.transform.position.x, transform.position.y, mb.transform.position.z);
-                    // transform.position = otherXZ;
-                }
-            }
-            
             HitCount++;
         }
 
@@ -274,9 +266,9 @@ namespace CoolTools.Actors
 
         private void Update()
         {
-            if (_rotateTowardsMovement && _rigidbody.velocity != Vector3.zero)
+            if (_rotateTowardsMovement && _rigidbody.linearVelocity != Vector3.zero)
             {
-                transform.forward = _rigidbody.velocity.normalized;
+                transform.forward = _rigidbody.linearVelocity.normalized;
             }
             
             if (_hasTarget && (Target == null || Target.BypassDetection || Target.GO == null))
@@ -290,13 +282,14 @@ namespace CoolTools.Actors
             UpdateShapeCastHit();
             
             // Apply Acceleration to rigidBody
-            if (_hasTarget && Target != null && !Target.BypassDetection && _rigidbody.velocity.sqrMagnitude > 0.2f)
+            if (_hasTarget && Target != null && !Target.BypassDetection && _rigidbody.linearVelocity.sqrMagnitude > 0.2f)
             {
                 var dir = (Target.GO.transform.position - transform.position).normalized;
                 var force = dir * _homingFactor;
 
-                var dot = Vector3.Dot(dir, _rigidbody.velocity.normalized);
+                var dot = Vector3.Dot(dir, _rigidbody.linearVelocity.normalized);
                 force *= (1f - dot);
+                
                 _rigidbody.AddForce(force, ForceMode.Force);
             }
             // else if (_hasTargetPosition)
@@ -306,12 +299,12 @@ namespace CoolTools.Actors
             // } 
             else
             {
-                _rigidbody.AddForce(transform.forward * _acceleration, ForceMode.Force);
             }
+            _rigidbody.AddForce(transform.forward * _acceleration, ForceMode.Force);
             
             // Limit velocity to maxSpeed
             if(_maxSpeed.Value > 0f)
-                _rigidbody.velocity = Vector3.ClampMagnitude(_rigidbody.velocity, _maxSpeed.Value);
+                _rigidbody.linearVelocity = Vector3.ClampMagnitude(_rigidbody.linearVelocity, _maxSpeed.Value);
         }
 
         public void DisposeProjectile()
@@ -338,7 +331,7 @@ namespace CoolTools.Actors
 
         public void StopPhysics()
         {
-            _rigidbody.velocity = Vector3.zero;
+            _rigidbody.linearVelocity = Vector3.zero;
             _rigidbody.isKinematic = true;
         }
     }

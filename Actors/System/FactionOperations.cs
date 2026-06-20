@@ -8,13 +8,13 @@ namespace CoolTools.Actors
         [Serializable]
         public enum FactionFilterMode
         {
-            NotOwner, OnlyOwner
+            NotOwner, OnlyOwner, Include, Exclude
         }
         
-        // public static bool IsValidFaction(ActorFaction target, ActorFaction[] factionList, FactionFilterMode mode)
-        // {
-        //     return (mode == FactionFilterMode.Include && factionList.Contains(target)) ||
-        //            (mode == FactionFilterMode.Exclude && !factionList.Contains(target));
-        // }
+        public static bool IsValidFaction(ActorFaction target, ActorFaction[] factionList, FactionFilterMode mode)
+        {
+            return (mode == FactionFilterMode.Include && factionList.Contains(target)) ||
+                   (mode == FactionFilterMode.Exclude && !factionList.Contains(target));
+        }
     }
 }

@@ -136,6 +136,7 @@ namespace CoolTools.Actors
             cachedExpression.RefreshParamOrder(_paramOrder);
 
             result = cachedDelegate.Invoke(_paramValues);
+            
             return result;
         }
 
