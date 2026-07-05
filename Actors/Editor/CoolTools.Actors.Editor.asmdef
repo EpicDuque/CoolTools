@@ -4,7 +4,8 @@
     "references": [
         "GUID:14215c729353d8046ae86bdf709e3333",
         "GUID:8f2b894c85007bc49a00f45557077e8e",
-        "GUID:f13d1ea96a3bd944d9f1889c93bdf86b"
+        "GUID:f13d1ea96a3bd944d9f1889c93bdf86b",
+        "CoolTools.Attributes"
     ],
     "includePlatforms": [
         "Editor"

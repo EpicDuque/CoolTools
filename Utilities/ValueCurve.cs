@@ -1,13 +1,18 @@
-﻿using CoolTools.Attributes;
+﻿using CoolTools.Utilities;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace CoolTools.Utilities
 {
     [CreateAssetMenu(fileName = "New Value Curve", menuName = "Value Curve", order = 0)]
     public class ValueCurve : ScriptableObject
     {
-        [SerializeField] private float scaleX = 1f;
-        [SerializeField] private float scaleY = 1f;
+        [FormerlySerializedAs("scaleX")]
+        [Space(10f)]
+        [SerializeField] private float _XMax = 1f;
+        [FormerlySerializedAs("scaleY")] 
+        [SerializeField] private float _YMax = 1f;
+        [SerializeField] private float _YOffset;
         
         [Space(10f)]
         [SerializeField] private AnimationCurve curve;
@@ -26,7 +31,7 @@ namespace CoolTools.Utilities
                 result = Mathf.RoundToInt(result);
         }
 
-        public float Evaluate(float x) => curve.Evaluate(x * scaleX) * scaleY;
+        public float Evaluate(float x) => _YOffset + curve.Evaluate(x / _XMax) * _YMax;
         
         public int EvaluateRounded(float x) => Mathf.RoundToInt(Evaluate(x));
     }

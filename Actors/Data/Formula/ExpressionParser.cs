@@ -26,6 +26,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using ZLinq;
 using Random = System.Random;
 
 namespace B83.ExpressionParser
@@ -96,7 +97,8 @@ namespace B83.ExpressionParser
     {
         private readonly IValue[] m_Values;
         
-        public double Value => m_Values.Select(v => v.Value).Aggregate((v1, v2) => v1 * v2);
+        public double Value => m_Values.AsValueEnumerable()
+            .Select(v => v.Value).Aggregate((v1, v2) => v1 * v2);
 
         public OperationProduct(params IValue[] aValues)
         {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -8,14 +8,6 @@ namespace CoolTools.Actors
 {
     public class HitBox : OwnableBehaviour
     {
-        [Serializable]
-        public struct HitEvents
-        {
-            public UnityEvent<IDamageable> OnHit;
-            public UnityEvent<Vector3> OnHitPos;
-            public UnityEvent<int> OnHitAmount;
-        }
-        
         [ColorSpacer("Hit Box")] 
         [SerializeField] private IntValueConfig _power;
         [SerializeField] private DamageType _damageType;
@@ -23,10 +15,12 @@ namespace CoolTools.Actors
         [SerializeField] private bool _hitInvincibles = true;
         
         [Space(10f)]
-        public HitEvents Events;
+        public UnityEvent<DamageParams> OnHit;
         
-        [Space(10f)] [SerializeField]
+        [Space(10f)] 
+        [SerializeField]
         private FactionOperations.FactionFilterMode _factionFilter = FactionOperations.FactionFilterMode.NotOwner;
+        [SerializeField] private ActorFaction[] _targetFactions;
         
         private List<IDamageable> _damageablesHit = new();
         private List<IDamageable> _insideDamageables = new();
@@ -81,16 +75,25 @@ namespace CoolTools.Actors
             _power.UpdateValue(this);
             if (HasOwner && damageable is IOwnable ownable && ownable.HasOwner)
             {
-                if (_factionFilter == FactionOperations.FactionFilterMode.NotOwner)
+                switch (_factionFilter)
                 {
-                    if(ownable.Owner.Faction == Owner.Faction) 
-                        return;
+                    case FactionOperations.FactionFilterMode.NotOwner:
+                        if(ownable.Owner.Faction == Owner.Faction) 
+                            return;
+                        break;
+                    case FactionOperations.FactionFilterMode.OnlyOwner:
+                        if(ownable.Owner.Faction != Owner.Faction) 
+                            return;
+                        break;
+                    case FactionOperations.FactionFilterMode.Include:
+                    case FactionOperations.FactionFilterMode.Exclude:
+                        if(!FactionOperations.IsValidFaction(ownable.Owner.Faction, _targetFactions, _factionFilter))
+                            return;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-                else
-                {
-                    if(ownable.Owner.Faction != Owner.Faction) 
-                        return;
-                }
+                
             }
             
             if(!_damageablesHit.Contains(damageable))
@@ -113,18 +116,19 @@ namespace CoolTools.Actors
 
         public void Hit(IDamageable other, Vector3 hitPoint)
         {
-            other.DealDamage(new DamageParams()
+            var damageParams = new DamageParams
             {
                 Amount = _power.Value,
                 Source = Owner,
                 Target = other,
                 SourceObject = gameObject,
                 Type = _damageType,
-            });
+                HitPoint = hitPoint
+            };
             
-            Events.OnHit?.Invoke(other);
-            Events.OnHitPos?.Invoke(hitPoint);
-            Events.OnHitAmount?.Invoke(_power.Value);
+            other.DealDamage(damageParams);
+            
+            OnHit?.Invoke(damageParams);
         }
     }
 }

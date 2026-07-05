@@ -1,5 +1,6 @@
 using System;
-using CoolTools.Attributes;
+using System.Collections.Generic;
+using CoolTools.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -11,7 +12,7 @@ namespace CoolTools.Actors
         [SerializeField] protected bool _invincible;
         
         [Space(10f)] 
-        [SerializeField] private DamageMultiplier[] _multipliers;
+        [SerializeField] private List<DamageMultiplier> _multipliers;
         
         [ColorSpacer("Events")]
         [SerializeField] protected DamageableEvents _damageableEvents;
@@ -28,24 +29,9 @@ namespace CoolTools.Actors
         
         public DamageableEvents Events => _damageableEvents;
 
-        [Serializable]
-        public struct DamageMultiplier
-        {
-            [Space(10f)]
-            public DamageType DamageType;
-            public bool AllTypes;
-            
-            [Space(5f)]
-            public Formula FormulaMultiplier;
-            
-            [Space(5f)]
-            public float Multiplier;
-        }
+        [field: SerializeField, InspectorDisabled] 
+        public DamageParams LastDamage { get; set; }
 
-        [field: SerializeField, InspectorDisabled] public DamageParams LastDamage { get; set; }
-
-        public bool BypassDetection { get; set; } = false;
-        
         public bool Invincible
         {
             get => _invincible;
@@ -64,6 +50,7 @@ namespace CoolTools.Actors
                     Events.OnDeath?.Invoke();
             }
         }
+        
         public GameObject GO => gameObject;
         public virtual bool IsAlive => Amount > 0;
         public int Health => Amount;
@@ -74,16 +61,18 @@ namespace CoolTools.Actors
             if (!IsAlive) return;
             if (Invincible) return;
 
+            var modifiedData = data;
+            
             var amount = Mathf.RoundToInt(data.Amount * GetMultiplier(data.Type));
-            data.Amount = amount;
+            modifiedData.Amount = amount;
             
-            LastDamage = data;
-            Amount -= data.Amount;
+            LastDamage = modifiedData;
+            Amount -= modifiedData.Amount;
             
-            if(data.Amount < 0)
-                Events.OnHeal?.Invoke(data.Amount);
-            else if(data.Amount > 0)
-                Events.OnDamage?.Invoke(data.Amount);
+            if(modifiedData.Amount < 0)
+                Events.OnHeal?.Invoke(modifiedData.Amount);
+            else if(modifiedData.Amount > 0)
+                Events.OnDamage?.Invoke(modifiedData.Amount);
         }
 
         private float GetMultiplier(DamageType damageType)
@@ -99,6 +88,21 @@ namespace CoolTools.Actors
             }
 
             return totalMultiplier;
+        }
+        
+        public void AddDamageMultiplier(DamageMultiplier multiplier)
+        {
+            _multipliers.Add(multiplier);
+        }
+        
+        public void RemoveDamageMultiplier(DamageMultiplier multiplier)
+        {
+            _multipliers.Remove(multiplier);
+        }
+        
+        public void RemoveDamageMultiplier(string id)
+        {
+            _multipliers.RemoveAll(multiplier => multiplier.ID == id);
         }
         
         [ContextMenu("Kill")]
@@ -119,6 +123,31 @@ namespace CoolTools.Actors
             
             Restore();
             Events.OnRevive?.Invoke();
+        }
+
+        protected override void UpdateRegen()
+        {
+            if (RegenRate <= 0f) return;
+            
+            _regenCooldown -= Time.deltaTime;
+                
+            if (_regenCooldown <= 0f)
+            {
+                _regenCooldown = 0f;
+                do
+                {
+                    _regenCooldown += 1f / RegenRate;
+                    if (Health < MaxHealth)
+                    {
+                        DealDamage(new DamageParams
+                        {
+                            Amount = -1,
+                            Source = Owner,
+                            Target = this,
+                        });
+                    }
+                } while (_regenCooldown < Time.deltaTime);
+            }
         }
     }
 }

@@ -16,10 +16,5 @@ namespace CoolTools.Actors
         {
             
         }
-        
-        private void FixedUpdate()
-        {
-            
-        }
     }
 }

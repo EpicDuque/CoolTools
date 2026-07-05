@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using R3;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -13,6 +12,12 @@ namespace CoolTools.Utilities
     {
         [FormerlySerializedAs("config")] 
         [SerializeField] private ObjectPoolConfig _config;
+        [SerializeField] private bool _autoInitialize;
+        
+        [Header("Misc")] 
+        [SerializeField] private bool _instantiateAsync;
+        [SerializeField] private bool showWarnings;
+        [SerializeField] private bool showErrors;
         
         [Space(10f)]
         public UnityEvent PoolCreated;
@@ -20,12 +25,6 @@ namespace CoolTools.Utilities
         [Header("Add Objects Helper")]
         [SerializeField] private List<PoolableObject> objectsToAdd;
         [SerializeField] private int amountPerObject;
-        
-        [Header("Misc")] 
-        [SerializeField] private bool _instantiateAsync;
-        [SerializeField] private bool showWarnings;
-        [SerializeField] private bool showErrors;
-        
         private static Dictionary<string, ObjectPool> pools = new ();
         
         private readonly Dictionary<string, Queue<PoolableObject>> cachedPool = new();
@@ -60,8 +59,15 @@ namespace CoolTools.Utilities
 
         public void Awake()
         {
-            // pools.Clear();
             pools.Add(PoolName, this);
+        }
+
+        private void OnEnable()
+        {
+            if (_autoInitialize && !IsCreated)
+            {
+                Initialize();
+            }
         }
 
         public void OnDestroy()
@@ -207,6 +213,18 @@ namespace CoolTools.Utilities
             IsCreated = true;
         }
         
+        public PoolableObject Pull(GameObject obj, Vector3 position, Quaternion rotation)
+        {
+            var scene = SceneManager.GetActiveScene();
+            
+            return Pull(obj.name, position, rotation, scene);
+        }
+        
+        public PoolableObject Pull(GameObject obj, Vector3 position, Quaternion rotation, Scene scene)
+        {
+            return Pull(obj.name, position, rotation, scene);
+        }
+        
         // ReSharper disable Unity.PerformanceAnalysis
         public PoolableObject Pull(string key, Vector3 position, Quaternion rotation, Scene moveToScene)
         {
@@ -281,17 +299,14 @@ namespace CoolTools.Utilities
         {
             var obj = Pull(key, position, rotation, moveToScene);
             
-            if (obj == null || !obj.TryGetComponent(out T component))
-                return null;
-
-            return component;
+            return !obj.TryGetComponent(out T component) ? null : component;
         }
 
         public T Pull<T>(string key, Transform parent, Scene moveToScene) where T : Component
         {
             var obj = Pull(key, parent.position, parent.rotation, moveToScene);
             
-            if (obj == null || !obj.TryGetComponent(out T component))
+            if (!obj.TryGetComponent(out T component))
                 return null;
 
             obj.transform.SetParent(parent);
@@ -310,7 +325,9 @@ namespace CoolTools.Utilities
         /// <param name="instance"></param>
         public void Put(PoolableObject instance)
         {
+            // Try to remove instance.name since it's a heavy operation
             var key = instance.name.Replace("(Clone)", "").Trim();
+            
             var parent = instance.PoolParent;
             var q = cachedPool[key];
             

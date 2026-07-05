@@ -29,15 +29,40 @@ namespace CoolTools.Actors
             public ValueCurve Curve;
         }
         
-        [FormerlySerializedAs("baseStats")] 
         [SerializeField] private List<AttributeValue> _baseStats = new();
         
         [Space(10f)] 
+        [SerializeField] private bool _curveDeterminesBaseStats;
         [SerializeField] private StatsLevelCurve[] _attributeLevelCurves;
         
         public AttributeValue[] BaseStats => _baseStats.ToArray();
 
         public StatsLevelCurve[] AttributeLevelCurves => _attributeLevelCurves;
+
+        private void OnValidate()
+        {
+            if (_curveDeterminesBaseStats)
+            {
+                foreach(var curve in _attributeLevelCurves)
+                {
+                    if (curve.Attribute == null) continue;
+
+                    for (int i = 0; i < _baseStats.Count; i++)
+                    {
+                        var stat = _baseStats[i];
+                        if (stat.Attribute != curve.Attribute) continue;
+                        
+                        _baseStats[i] = new AttributeValue
+                        {
+                            Attribute = stat.Attribute,
+                            Value = Mathf.RoundToInt(curve.Curve.Evaluate(1))
+                        };
+                        
+                        break;
+                    }
+                }
+            }
+        }
 
         public int GetBaseAttributeValue(AttributeSO definition)
         {
@@ -69,7 +94,7 @@ namespace CoolTools.Actors
                 }
             }
 
-            return levelCurve.Attribute != null ? baseStat + levelCurve.Curve.Evaluate(level) : baseStat;
+            return levelCurve.Attribute != null ? levelCurve.Curve.Evaluate(level) : baseStat;
         }
     }
 }

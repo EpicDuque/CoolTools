@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using B83.ExpressionParser;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using UnityEngine;
 
 namespace CoolTools.Actors
@@ -23,7 +23,8 @@ namespace CoolTools.Actors
         
         public string DefinedName => definedName;
         public string VariableName => variableName;
-
+        public Sprite Icon => _icon;
+        
         public bool Hidden => _hidden;
         public string Description => _description;
 

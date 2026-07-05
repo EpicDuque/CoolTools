@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+#if ACTOR_ZLINQ
+using ZLinq;
+#endif
 using System.Linq;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -21,6 +24,9 @@ namespace CoolTools.Actors
             public UnityEvent<Actor> OnActorDisabled;
             public UnityEvent<Actor> OnActorDestroyed;
         }
+
+        public event Action<OwnableBehaviour> OnRegisterOwnable;
+        public event Action<OwnableBehaviour> OnUnRegisterOwnable;
 
         #region Serialized Fields
 
@@ -93,7 +99,11 @@ namespace CoolTools.Actors
 
         public ActorFormulaEvaluator Evaluator => _evaluator;
 
-        public Animator Animator => _animator;
+        public Animator Animator
+        {
+            get => _animator;
+            protected set => _animator = value;
+        }
 
         public ActorEvents Events => _actorEvents;
 
@@ -105,7 +115,11 @@ namespace CoolTools.Actors
 
         public bool IsInitialized { get; set; }
 
-        public GameObject Model => _model;
+        public GameObject Model
+        {
+            get => _model;
+            protected set => _model = value;
+        }
 
         #endregion
 
@@ -118,7 +132,7 @@ namespace CoolTools.Actors
             SearchForBasicComponents();
         }
 
-        private new void Awake()
+        private void Awake()
         {
             if(initMode == ActorInitMode.Awake)
                 Initialize();
@@ -143,7 +157,7 @@ namespace CoolTools.Actors
             Events.OnActorDisabled?.Invoke(this);
         }
 
-        protected new void OnDestroy()
+        protected void OnDestroy()
         {
             Events.OnActorDestroyed?.Invoke(this);
         }
@@ -189,25 +203,6 @@ namespace CoolTools.Actors
             
             _effectTargets.AddRange(GetComponentsInChildren<EffectTarget>(true)
                 .Where(o => o != null));
-
-            // foreach (var disposable in effectDestroyDisposables)
-            //     disposable.Dispose();
-            //
-            // effectDestroyDisposables.Clear();
-
-            // if (!Application.isPlaying) return;
-            
-            // foreach (var target in _effectTargets)
-            // {
-            //     if (target.gameObject.TryGetComponent<ObservableDestroyTrigger>(out var component))
-            //     {
-            //         Destroy(component);
-            //     }
-            //     effectDestroyDisposables.Add(target.gameObject.OnDestroyAsObservable().First().Subscribe(_ =>
-            //     {
-            //         _effectTargets.Remove(target);
-            //     }).AddTo(this));
-            // }
         }
         
         public void AddEffectTargets(IEnumerable<EffectTarget> targets)
@@ -248,25 +243,51 @@ namespace CoolTools.Actors
             return obj != null;
         }
 
-        public IEnumerable<EffectTarget> FindAllEffectTargets(IEnumerable<EffectTargetTag> tags)
+        public EffectTarget[] FindAllEffectTargets(IEnumerable<EffectTargetTag> tags)
         {
-            var tagsArray = tags.ToList();
-            
-            return _effectTargets.Where(et => et != null && tagsArray.Contains(et.TargetTag));
+            return _effectTargets
+#if ACTOR_ZLINQ
+                .AsValueEnumerable()
+#endif
+                .Where(et => et != null && tags.Contains(et.TargetTag))
+                .ToArray();
         }
 
-        protected internal void RegisterOwnership(OwnableBehaviour ownable) => ownedBehaviours.Add(ownable);
-        
-        protected internal void UnregisterOwnership(OwnableBehaviour ownable) => ownedBehaviours.Remove(ownable);
+        protected internal void RegisterOwnership(OwnableBehaviour ownable)
+        {
+            ownedBehaviours.Add(ownable);
+            OnRegisterOwnable?.Invoke(ownable);
+        }
+
+        protected internal void UnregisterOwnership(OwnableBehaviour ownable)
+        {
+            ownedBehaviours.Remove(ownable);
+            OnUnRegisterOwnable?.Invoke(ownable);
+        }
 
         public T GetOwnableBehaviour<T>() where T : OwnableBehaviour
         {
-            return OwnedBehaviours.FirstOrDefault(ob => ob is T) as T;
+            return OwnedBehaviours
+            #if ACTOR_ZLINQ
+                .AsValueEnumerable()
+            #endif
+                .FirstOrDefault(ob => ob is T) as T;
+        }
+        
+        public bool TryGetOwnableBehaviour<T>(out T behaviour) where T : OwnableBehaviour
+        {
+            behaviour = GetOwnableBehaviour<T>();
+            return behaviour != null;
         }
         
         public T[] GetOwnableBehaviours<T>() where T : OwnableBehaviour
         {
-            return OwnedBehaviours.Where(ob => ob is T).Cast<T>().ToArray();
+            return OwnedBehaviours
+            #if ACTOR_ZLINQ
+                .AsValueEnumerable()
+            #endif
+                .Where(ob => ob is T)
+                .Cast<T>().ToArray();
         }
     }
 }

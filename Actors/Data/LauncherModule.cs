@@ -70,9 +70,14 @@ namespace CoolTools.Actors
             }
 
             p.Initialize();
-            p.RB.velocity = p.transform.forward * launcher.LaunchForce.Value;
+            p.RB.linearVelocity = GetInitialVelocity(launcher, p);
 
             return p;
+        }
+
+        protected virtual Vector3 GetInitialVelocity(ProjectileLauncher launcher, Projectile p)
+        {
+            return p.transform.forward * launcher.LaunchForce.Value;
         }
     }
 }

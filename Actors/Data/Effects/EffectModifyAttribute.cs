@@ -22,9 +22,9 @@ namespace CoolTools.Actors
             target.StatProvider.UpdateActorCurrentStats();
         }
 
-        public override void Execute(Actor source)
+        public override void Execute(Actor target)
         {
-            Execute(source, source);
+            Execute(target, target);
         }
 
         public override void ResetEffect(Actor target)

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
+using ZLinq;
 
 namespace CoolTools.Actors
 {
@@ -39,7 +40,7 @@ namespace CoolTools.Actors
         private bool _abilityEndSignal;
         
         private Vector3 _targetPosition;
-        private IDetectable _targetDetectable;
+        private Detectable _targetDetectable;
         private Actor _targetActor;
         
         private enum CastingTarget
@@ -104,22 +105,14 @@ namespace CoolTools.Actors
             _cooldownMultiplier.BaseValue = 1;
             _durationMultiplier.BaseValue = 1;
             
-            _cooldownMultiplier.UpdateValue();
-            _durationMultiplier.UpdateValue();
+            _cooldownMultiplier.UpdateValue(this);
+            _durationMultiplier.UpdateValue(this);
         }
 
         private void OnValidate()
         {
-            if (Owner != null)
-            {
-                _cooldownMultiplier.UpdateValue(Owner);
-                _durationMultiplier.UpdateValue(Owner);
-            }
-            else
-            {
-                _cooldownMultiplier.UpdateValue();
-                _durationMultiplier.UpdateValue();
-            }
+            _cooldownMultiplier.UpdateValue(this);
+            _durationMultiplier.UpdateValue(this);
         }
 
         private void OnEnable()
@@ -251,7 +244,7 @@ namespace CoolTools.Actors
             }
         }
         
-        private void ExecuteEffects(IDetectable target)
+        private void ExecuteEffects(Detectable target)
         {
             foreach (var effect in _castingAbility.AbilityEffects)
             {
@@ -291,7 +284,7 @@ namespace CoolTools.Actors
             }
         }
         
-        private IEnumerator ExecuteEffectsRoutine(IDetectable target)
+        private IEnumerator ExecuteEffectsRoutine(Detectable target)
         {
             foreach(var effect in _castingAbility.AbilityEffects)
             {
@@ -342,7 +335,7 @@ namespace CoolTools.Actors
             TriggerAnimatorFields();
         }
 
-        public void CastAbility(IDetectable target)
+        public void CastAbility(Detectable target)
         {
             if (!IsReadyToCast()) return;
 
@@ -406,8 +399,8 @@ namespace CoolTools.Actors
 
         public bool HasResourcesForAbility(AbilityBase ability)
         {
-            return ability.ResourceCosts.Length == 0 || ability.ResourceCosts.All(rc =>
-                _resourceContainers.Any(c => c.Resource == rc.Resource && c.Amount >= rc.Amount));
+            return ability.ResourceCosts.Length == 0 || ability.ResourceCosts.AsValueEnumerable().All(rc =>
+                _resourceContainers.AsValueEnumerable().Any(c => c.Resource == rc.Resource && c.Amount >= rc.Amount));
         }
 
         private void EndAbility(float cooldown = -1f)
@@ -441,7 +434,7 @@ namespace CoolTools.Actors
             }
         }
 
-        public void ForceCooldown(float cooldown)
+        public void ForceCooldown(float cooldown = -1f)
         {
             if (State == CasterState.Casting)
             {
@@ -450,13 +443,13 @@ namespace CoolTools.Actors
                 EndAbility();
 
                 State = CasterState.Cooldown;
-                Cooldown = cooldown;
+                Cooldown = cooldown > -1f ? cooldown : _castingAbility.Cooldown;
                 _castingRoutine = null;
             }
             else
             {
                 State = CasterState.Cooldown;
-                Cooldown = cooldown;
+                Cooldown = cooldown > -1f ? cooldown : _castingAbility.Cooldown;
             }
         }
     }

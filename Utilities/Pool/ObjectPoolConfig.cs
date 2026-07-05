@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using UnityEngine;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR

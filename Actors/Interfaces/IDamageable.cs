@@ -22,5 +22,6 @@ namespace CoolTools.Actors
         public GameObject SourceObject;
         public DamageType Type;
         public bool Critical;
+        public Vector3 HitPoint;
     }
 }

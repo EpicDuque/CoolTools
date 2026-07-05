@@ -1,5 +1,5 @@
 ﻿using System;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using CoolTools.Utilities;
 using UnityEngine;
 
@@ -72,10 +72,6 @@ namespace CoolTools.Actors
             {
                 GetOwnershipFrom.OwnershipChanged += OnGetOwnershipOwnerChanged;
                 OnGetOwnershipOwnerChanged(GetOwnershipFrom.Owner);
-                // Observable.EveryUpdate().Take(2).Subscribe(_ =>
-                // {
-                //     OnGetOwnershipOwnerChanged(GetOwnershipFrom.Owner);
-                // }).AddTo(this);
             }
         }
         
@@ -99,7 +95,7 @@ namespace CoolTools.Actors
         }
 
         /// <summary>
-        /// Called right after assigning Ownership to this OwnableBehaviour
+        /// Called right after assigning Ownership to this OwnableBehaviour.
         /// </summary>
         /// <param name="newOwner">The new owner</param>
         protected virtual void OnOwnerChanged(Actor newOwner)

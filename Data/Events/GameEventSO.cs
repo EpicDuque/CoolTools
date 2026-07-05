@@ -53,20 +53,6 @@ namespace CoolTools.Data
             listeners.Clear();
         }
 
-        private string GetObjectFullPath(GameObject go)
-        {
-            Transform[] path = go.transform.GetComponentsInParent<Transform>();
-            
-            string fullPath = "";
-
-            foreach (Transform t in path)
-            {
-                fullPath = "/" + t.name + fullPath;
-            }
-
-            return $"{go.scene.name} / {fullPath}";
-        }
-
         public CustomYieldInstruction GetYieldInstruction() => new WaitUntilEvent(this);
         
         private class WaitUntilEvent : CustomYieldInstruction, IGameEventListener<T>

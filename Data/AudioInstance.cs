@@ -2,7 +2,7 @@
 using UnityEditor;
 #endif
 
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using UnityEngine;
 
 namespace CoolTools.Data
@@ -14,9 +14,9 @@ namespace CoolTools.Data
         [SerializeField] private HideFlags _hideFlags;
         
         [IntervalVector2(0f, 1f)] 
-        [SerializeField] private Vector2 _volume = new Vector2(0.75f, 1f);
+        [SerializeField] private Vector2 _volume = new (0.75f, 1f);
 
-        [IntervalVector2(-3f, 3f)] 
+        [IntervalVector2(0.1f, 3f)] 
         [SerializeField] private Vector2 _pitch = new(0.9f, 1.1f);
 
         private AudioSource _source;

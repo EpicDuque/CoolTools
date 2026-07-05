@@ -1,6 +1,6 @@
 {
   "name": "com.duqueforce.cooltools",
-  "version": "0.2.6",
+  "version": "0.2.8",
   "displayName": "Cool Tools",
   "description": "Collection of gameplay and editor tools to boost development.",
   "unity": "2022.3",

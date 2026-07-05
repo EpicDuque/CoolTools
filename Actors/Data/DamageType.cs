@@ -9,4 +9,6 @@ public class DamageType : ScriptableObject
     [SerializeField, TextArea] private string _description;
 
     public string TypeName => _typeName;
+
+    public string Description => _description;
 }

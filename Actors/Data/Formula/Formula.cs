@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using B83.ExpressionParser;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using UnityEngine;
 
 namespace CoolTools.Actors
@@ -136,6 +136,7 @@ namespace CoolTools.Actors
             cachedExpression.RefreshParamOrder(_paramOrder);
 
             result = cachedDelegate.Invoke(_paramValues);
+            
             return result;
         }
 
