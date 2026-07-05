@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace CoolTools.Attributes.Editor
+namespace CoolTools.Utilities.Editor
 {
     [CustomPropertyDrawer(typeof(IntervalVector2Attribute))]
     public class IntervalVector2AttributeDrawer : PropertyDrawer

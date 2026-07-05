@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace CoolTools.Attributes.Editor
+namespace CoolTools.Utilities.Editor
 {
     [CustomPropertyDrawer(typeof(HelpBoxAttribute))]
     public class HelpBoxAttributeDrawer : DecoratorDrawer

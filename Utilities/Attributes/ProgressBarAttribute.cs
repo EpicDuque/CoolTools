@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace CoolTools.Attributes
+namespace CoolTools.Utilities
 {
     [System.AttributeUsage(System.AttributeTargets.Field)]
     public class ProgressBarAttribute : PropertyAttribute {

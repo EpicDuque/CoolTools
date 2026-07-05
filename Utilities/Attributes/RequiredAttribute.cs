@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CoolTools.Attributes
+namespace CoolTools.Utilities
 {
     public class RequiredAttribute : PropertyAttribute { }
 }

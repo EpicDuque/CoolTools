@@ -1,4 +1,4 @@
-﻿using CoolTools.Attributes;
+﻿using CoolTools.Utilities;
 using UnityEngine;
 
 namespace CoolTools.Actors
@@ -50,8 +50,8 @@ namespace CoolTools.Actors
         
         private void OnValidate()
         {
-            _maxAmount.UpdateValue(this);
-            _regenRate.UpdateValue(this);
+            _maxAmount?.UpdateValue(this);
+            _regenRate?.UpdateValue(this);
             
             if(_amount > MaxAmount.Value)
                 _amount = MaxAmount.Value;

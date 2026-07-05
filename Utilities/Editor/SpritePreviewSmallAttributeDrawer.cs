@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace CoolTools.Attributes.Editor
+namespace CoolTools.Utilities.Editor
 {
     [CustomPropertyDrawer(typeof(SpritePreviewSmallAttribute))]
     public class SpritePreviewSmallAttributeDrawer : PropertyDrawer

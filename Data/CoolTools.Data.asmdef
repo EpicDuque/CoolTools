@@ -2,8 +2,7 @@
     "name": "CoolTools.Data",
     "rootNamespace": "CoolTools.Data",
     "references": [
-        "GUID:ac41e83e2d7081345953267b874e0f5c",
-        "GUID:560b04d1a97f54a4e82edc0cbbb69285"
+        "GUID:f5524bc120094404e9ee8a081d7efa21"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

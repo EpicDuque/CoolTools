@@ -1,9 +1,7 @@
 {
     "name": "CoolTools.Editor",
     "rootNamespace": "",
-    "references": [
-        "GUID:21b0c8d1703a94250bfac916590cea4f"
-    ],
+    "references": [],
     "includePlatforms": [
         "Editor"
     ],

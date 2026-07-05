@@ -1,5 +1,5 @@
 <h2>COOL TOOLS</h2>
-<h3> Version: 0.2.7</h3>
+<h3> Version: 0.2.8</h3>
 
 <br>
 This is a collection of tools that aims to help speed up early prototyping and development of Unity projects.

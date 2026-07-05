@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace CoolTools.Attributes
+namespace CoolTools.Utilities
 {
     public class SpritePreviewSmallAttribute : PropertyAttribute
     {

@@ -1,8 +1,8 @@
-﻿using CoolTools.Attributes;
+﻿using CoolTools.Utilities;
 using UnityEditor;
 using UnityEngine;
 
-namespace CoolTools.Attributes.Editor
+namespace CoolTools.Utilities.Editor
 {
     
     [CustomPropertyDrawer(typeof(LockableAttribute))]

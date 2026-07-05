@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using ZLinq;
 #endif
 using System.Linq;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 

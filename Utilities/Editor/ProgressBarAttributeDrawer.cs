@@ -1,9 +1,9 @@
 ﻿using System.Globalization;
 using UnityEditor;
 using UnityEngine;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 
-namespace CoolTools.Attributes.Editor
+namespace CoolTools.Utilities.Editor
 {
     [CustomPropertyDrawer(typeof(ProgressBarAttribute))]
     public class ProgressBarAttributeDrawer : PropertyDrawer {

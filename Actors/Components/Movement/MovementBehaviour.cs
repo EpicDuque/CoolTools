@@ -1,5 +1,5 @@
 ﻿using System;
-using CoolTools.Attributes;
+using CoolTools.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
@@ -154,9 +154,9 @@ namespace CoolTools.Actors
         private void OnValidate()
         {
             if(Owner != null)
-                _maxMovementSpeed.UpdateValue(Owner);
+                _maxMovementSpeed?.UpdateValue(Owner);
             else
-                _maxMovementSpeed.UpdateValue();
+                _maxMovementSpeed?.UpdateValue();
             
             HasCharacterController = _characterController != null;
             HasNavMeshAgent = _navMeshAgent != null;
